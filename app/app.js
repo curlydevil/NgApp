@@ -5,8 +5,21 @@
                               "ui.router",
                               "ui.mask",
                               "ui.bootstrap",
+                              "productResourceMock",
                               "angularCharts",
-                              "productResourceMock"]);
+                              ]);
+
+    app.config(function($provide){
+        $provide.decorator("$exceptionHandler",
+                           ["$delegate",
+                           function($delegate){
+                               return function(exception, cause){
+                                   exception.message = "Please, contact the Help Desk! \n Message: " + exception.message;
+                                   $delegate(exception, cause);
+                                   alert(exception.message);
+                               };
+                           }]);
+    });
     
     app.config(["$stateProvider", "$urlRouterProvider",
                 function($stateProvider, $urlRouterProvider){
@@ -59,7 +72,12 @@
                         resolve: {
                             productResource: "productResource",
                             products: function(productResource){
-                                return productResource.query().$promise;
+                                return productResource.query(
+                                function(response){},
+                                function(response){
+                                    toastr.warning(response.data,
+                                                   "Error code: " + response.status);
+                                    }).$promise;
                             }
                         }
                     })
